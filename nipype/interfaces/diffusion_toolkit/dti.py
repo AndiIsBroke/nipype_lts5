@@ -21,9 +21,14 @@ class DTIReconInputSpec(CommandLineInputSpec):
     DWI = File(desc='Input diffusion volume', argstr='%s',exists=True, mandatory=True,position=1)
     out_prefix = traits.Str("dti", desc='Output file prefix', argstr='%s', usedefault=True,position=2)
     output_type = traits.Enum('nii', 'analyze', 'ni1', 'nii.gz', argstr='-ot %s', desc='output file type', usedefault=True)
-    bvecs = File(exists=True, desc = 'b vectors file',
-                argstr='-gm %s', mandatory=True)
-    bvals = File(exists=True,desc = 'b values file', mandatory=True)
+    gradient_matrix = File(desc="""specify gradient matrix to use. required.""", argstr='-gm %s', exists=True, mandatory=True, position=3)
+    multiple_b_values = traits.Bool(desc="""if 'MultiBvalue' is 'true' 
+          or 1, it will either use the bvalues specified as the 4th component 
+          of each gradient vector, or use max b value scaled by the magnitude
+          of the vector.""", argstr='%d', position=4)
+    b_value = traits.Int(desc="""set b value or maximum b value for multi-bvalue data. default is 1000""", argstr='-b %d')
+    number_of_b0 = traits.Int(desc="""number of repeated b0 images on top. default is 1. the program 
+          assumes b0 images are on top""", argstr='-b0 %d')
     n_averages = traits.Int(desc='Number of averages', argstr='-nex %s')
     image_orientation_vectors = traits.List(traits.Float(), minlen=6, maxlen=6, desc="""specify image orientation vectors. if just one argument given,
         will treat it as filename and read the orientation vectors from
@@ -43,6 +48,7 @@ class DTIReconInputSpec(CommandLineInputSpec):
 class DTIReconOutputSpec(TraitedSpec):
     ADC = File(exists=True)
     B0 = File(exists=True)
+    DWI = File(exists=True)
     L1 = File(exists=True)
     L2 = File(exists=True)
     L3 = File(exists=True)
@@ -63,26 +69,6 @@ class DTIRecon(CommandLine):
 
     _cmd = 'dti_recon'
 
-    def _create_gradient_matrix(self, bvecs_file, bvals_file):
-        _gradient_matrix_file = 'gradient_matrix.txt'
-        bvals = [val for val in  re.split('\s+', open(bvals_file).readline().strip())]
-        bvecs_f = open(bvecs_file)
-        bvecs_x = [val for val in  re.split('\s+', bvecs_f.readline().strip())]
-        bvecs_y = [val for val in  re.split('\s+', bvecs_f.readline().strip())]
-        bvecs_z = [val for val in  re.split('\s+', bvecs_f.readline().strip())]
-        bvecs_f.close()
-        gradient_matrix_f = open(_gradient_matrix_file, 'w')
-        for i in range(len(bvals)):
-            gradient_matrix_f.write("%s, %s, %s, %s\n"%(bvecs_x[i], bvecs_y[i], bvecs_z[i], bvals[i]))
-        gradient_matrix_f.close()
-        return _gradient_matrix_file
-
-    def _format_arg(self, name, spec, value):
-        if name == "bvecs":
-            new_val = self._create_gradient_matrix(self.inputs.bvecs, self.inputs.bvals)
-            return super(DTIRecon, self)._format_arg("bvecs", spec, new_val)
-        return super(DTIRecon, self)._format_arg(name, spec, value)
-
     def _list_outputs(self):
         out_prefix = self.inputs.out_prefix
         output_type = self.inputs.output_type
@@ -90,6 +76,7 @@ class DTIRecon(CommandLine):
         outputs = self.output_spec().get()
         outputs['ADC'] = os.path.abspath(fname_presuffix("",  prefix=out_prefix, suffix='_adc.'+ output_type))
         outputs['B0'] = os.path.abspath(fname_presuffix("",  prefix=out_prefix, suffix='_b0.'+ output_type))
+        outputs['DWI'] = os.path.abspath(fname_presuffix("",  prefix=out_prefix, suffix='_dwi.'+ output_type))
         outputs['L1'] = os.path.abspath(fname_presuffix("",  prefix=out_prefix, suffix='_e1.'+ output_type))
         outputs['L2'] = os.path.abspath(fname_presuffix("",  prefix=out_prefix, suffix='_e2.'+ output_type))
         outputs['L3'] = os.path.abspath(fname_presuffix("",  prefix=out_prefix, suffix='_e3.'+ output_type))
