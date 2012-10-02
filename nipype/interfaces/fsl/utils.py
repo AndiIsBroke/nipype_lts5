@@ -1151,3 +1151,81 @@ class EPIDeWarp(FSLCommand):
             outputs['exf_mask'] = self._gen_fname(cwd=self.inputs.tmpdir,
                                                   basename='maskexf')
         return outputs
+        
+class OrientInputSpec(FSLCommandInputSpec):
+
+    in_file = File(exists=True, mandatory=True, argstr="%s", position="2",
+                   desc="input image")
+                   
+    _options_xor = ['get_orient', 'get_sform', 'get_qform', 'set_sform', 'set_qform', 'get_sformcode', 'get_qformcode', 
+                    'set_sformcode', 'set_qformcode', 'copy_sform2qform', 'copy_qform2sform', 'delete_orient',
+                    'force_radiological', 'force_neurological', 'swap_orient']
+    
+    get_orient = traits.Bool(argstr="-getorient", position="1", xor=_options_xor, desc="gets FSL left-right orientation")
+    get_sform = traits.Bool(argstr="-getsform", position="1", xor=_options_xor, desc="gets the 16 elements of the sform matrix")
+    get_qform = traits.Bool(argstr="-getqform", position="1", xor=_options_xor, desc="gets the 16 elements of the qform matrix")
+    set_sform = traits.List(traits.Float(), minlen=16, maxlen=16, position="1", argstr="-setsform %f",
+                            xor=_options_xor, desc="<m11 m12 ... m44> sets the 16 elements of the sform matrix")
+    set_qform = traits.List(traits.Float(), minlen=16, maxlen=16, position="1", argstr="-setqform %f",
+                            xor=_options_xor, desc="<m11 m12 ... m44> sets the 16 elements of the qform matrix")
+    get_sformcode = traits.Bool(argstr="-getsformcode", position="1", xor=_options_xor, desc="gets the sform integer code")
+    get_qformcode = traits.Bool(argstr="-getqformcode", position="1", xor=_options_xor, desc="gets the qform integer code")
+    set_sformcode = traits.Int(argstr="-setformcode %d", position="1", xor=_options_xor, desc="<code> sets sform integer code")
+    set_qformcode = traits.Int(argstr="-setqormcode %d", position="1", xor=_options_xor, desc="<code> sets qform integer code")
+    copy_sform2qform = traits.Bool(argstr="-copysform2qform", position="1", xor=_options_xor, desc="sets the qform equal to the sform - code and matrix")
+    copy_qform2sform = traits.Bool(argstr="-copyqform2sform", position="1", xor=_options_xor, desc="sets the sform equal to the qform - code and matrix")
+    delete_orient = traits.Bool(argstr="-deleteorient", position="1", xor=_options_xor, desc="removes orient info from header")
+    force_radiological = traits.Bool(argstr="-forceradiological", position="1", xor=_options_xor, desc="makes FSL radiological header")
+    force_neurological = traits.Bool(argstr="-forceneurological", position="1", xor=_options_xor, desc="makes FSL neurological header - not Analyze")
+    swap_orient = traits.Bool(argstr="-swaporient", position="1", xor=_options_xor, desc="swaps FSL radiological and FSL neurological")
+
+
+class OrientOutputSpec(TraitedSpec):
+
+    out_file = File(exists=True, desc="image with modified orientation")
+    orient = traits.Str(desc="FSL left-right orientation")
+    sform = traits.List(traits.Float(), minlen=16, maxlen=16,
+                            desc="the 16 elements of the sform matrix")
+    qform = traits.List(traits.Float(), minlen=16, maxlen=16,
+                            desc="the 16 elements of the qform matrix")
+    sformcode = traits.Int(desc="sform integer code")
+    qformcode = traits.Int(desc="qform integer code")
+
+
+class Orient(FSLCommand):
+    """Use fslorient to get/set orientation information from an image's header.
+
+     Advanced tool that reports or sets the orientation information in a file. 
+     Note that only in NIfTI files can the orientation be changed - 
+     Analyze files are always treated as "radiological" (meaning that they could be 
+     simply rotated into the same alignment as the MNI152 standard images - equivalent 
+     to the appropriate sform or qform in a NIfTI file having a negative determinant). 
+
+
+    """
+    _cmd = "fslorient"
+    input_spec = OrientInputSpec
+    output_spec = OrientOutputSpec
+
+    def aggregate_outputs(self, runtime=None, needed_outputs=None):
+        outputs = self._outputs().get()
+        info = runtime.stdout
+
+        # Modified file
+        if isdefined(self.inputs.copy_sform2qform) or isdefined(self.inputs.copy_qform2sform) or isdefined(self.inputs.delete_orient) or isdefined(self.inputs.force_radiological) or isdefined(self.inputs.force_neurological) or isdefined(self.inputs.swap_orient):
+            
+            outputs['out_file'] = self.inputs.in_file
+            
+        # Get information
+        if isdefined(self.inputs.get_orient):
+            outputs['orient'] = info
+        if isdefined(self.inputs.get_sform):
+            outputs['sform'] = info
+        if isdefined(self.inputs.get_qform):
+            outputs['qform'] = info        
+        if isdefined(self.inputs.get_sformcode):
+            outputs['sformcode'] = info
+        if isdefined(self.inputs.get_qformcode):
+            outputs['qformcode'] = info
+
+        return outputs
