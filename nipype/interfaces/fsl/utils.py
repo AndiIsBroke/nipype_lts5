@@ -1208,24 +1208,24 @@ class Orient(FSLCommand):
     output_spec = OrientOutputSpec
 
     def aggregate_outputs(self, runtime=None, needed_outputs=None):
-        outputs = self._outputs().get()
+        outputs = self._outputs()
         info = runtime.stdout
 
         # Modified file
         if isdefined(self.inputs.copy_sform2qform) or isdefined(self.inputs.copy_qform2sform) or isdefined(self.inputs.delete_orient) or isdefined(self.inputs.force_radiological) or isdefined(self.inputs.force_neurological) or isdefined(self.inputs.swap_orient):
-            
-            outputs['out_file'] = self.inputs.in_file
+            outputs.out_file = self.inputs.in_file
+            #outputs['out_file'] = self.inputs.in_file
             
         # Get information
         if isdefined(self.inputs.get_orient):
-            outputs['orient'] = info
+            outputs.orient = info
         if isdefined(self.inputs.get_sform):
-            outputs['sform'] = info
+            outputs.sform = info
         if isdefined(self.inputs.get_qform):
-            outputs['qform'] = info        
+            outputs.qform= info        
         if isdefined(self.inputs.get_sformcode):
-            outputs['sformcode'] = info
+            outputs.sformcode = info
         if isdefined(self.inputs.get_qformcode):
-            outputs['qformcode'] = info
+            outputs.qformcode = info
 
         return outputs
