@@ -32,7 +32,7 @@ from cmtklib.parcellation import (get_parcellation, create_annot_label,
 class ParcellateInputSpec(BaseInterfaceInputSpec):
     subjects_dir = Directory(desc='Freesurfer main directory')
     subject_id = traits.String(mandatory=True, desc='Subject ID')
-    parcellation_scheme = traits.Enum('Lausanne2008',['Lausanne2008','Nativefreesurfer'], usedefault = True)
+    parcellation_scheme = traits.Enum('Lausanne2008',['Lausanne2008','NativeFreesurfer'], usedefault = True)
 
 
 class ParcellateOutputSpec(TraitedSpec):
