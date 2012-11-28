@@ -27,7 +27,8 @@ iflogger = logging.getLogger('interface')
 #else:
 from cmtklib.parcellation import (get_parcellation, create_annot_label, 
                                  create_roi, create_wm_mask,
-                                 crop_and_move_datasets)
+                                 crop_and_move_datasets, generate_WM_and_GM_mask,
+                                 crop_and_move_WM_and_GM)
 
 class ParcellateInputSpec(BaseInterfaceInputSpec):
     subjects_dir = Directory(desc='Freesurfer main directory')
@@ -79,6 +80,9 @@ class Parcellate(BaseInterface):
             create_roi(self.inputs.subject_id, self.inputs.subjects_dir)
             create_wm_mask(self.inputs.subject_id, self.inputs.subjects_dir)
             crop_and_move_datasets(self.inputs.subject_id, self.inputs.subjects_dir)
+        if self.inputs.parcellation_scheme == "NativeFreesurfer":
+            generate_WM_and_GM_mask(self.inputs.subject_id, self.inputs.subjects_dir)
+            crop_and_move_WM_and_GM(self.inputs.subject_id, self.inputs.subjects_dir)
             
         return runtime
 
