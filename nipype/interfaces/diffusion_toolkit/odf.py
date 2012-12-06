@@ -19,8 +19,9 @@ from nipype.interfaces.base import (TraitedSpec, File, traits, CommandLine,
 
 class HARDIMatInputSpec(CommandLineInputSpec):
     bvecs = File(exists=True, desc = 'b vectors file',
-                argstr='%s', position=1, mandatory=True)
-    bvals = File(exists=True,desc = 'b values file', mandatory=True)
+                argstr='%s', position=1)
+    bvals = File(exists=True,desc = 'b values file')
+    gradient_table = File(exists=True,desc = 'Input gradient table', position=1, argstr='%s')
     out_file = File("recon_mat.dat", desc = 'output matrix file', argstr='%s', usedefault=True, position=2)
     order = traits.Int(argsstr='-order %s', desc="""maximum order of spherical harmonics. must be even number. default
         is 4""")
