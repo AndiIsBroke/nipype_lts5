@@ -94,14 +94,14 @@ class Parcellate(BaseInterface):
         outputs['ribbon_file'] = op.abspath('ribbon.nii.gz')
         outputs['aseg_file'] = op.abspath('aseg.nii.gz')
         
-        outputs['roi_files'] = self._gen_outfilenames('ROI_HR_th.nii.gz')
-        outputs['roi_files_in_structural_space'] = self._gen_outfilenames('ROIv_HR_th.nii.gz')
+        outputs['roi_files'] = self._gen_outfilenames('ROI_HR_th')
+        outputs['roi_files_in_structural_space'] = self._gen_outfilenames('ROIv_HR_th')
 
         return outputs
 
     def _gen_outfilenames(self, basename):
         filepaths = []
         for scale in get_parcellation(self.inputs.parcellation_scheme).keys():
-            filepaths.append(op.abspath(op.join(scale,basename)))
+            filepaths.append(op.abspath(basename+'_'+scale+'.nii.gz'))
         return filepaths
         
