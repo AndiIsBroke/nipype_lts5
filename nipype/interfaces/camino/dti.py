@@ -8,7 +8,7 @@
 """
 from nipype.interfaces.base import (CommandLineInputSpec, CommandLine, traits,
                                     TraitedSpec, File, StdOutCommandLine,
-                                    StdOutCommandLineInputSpec)
+                                    StdOutCommandLineInputSpec, InputMultiPath)
 from nipype.utils.filemanip import split_filename
 import os
 
@@ -180,11 +180,13 @@ class DTLUTGenInputSpec(StdOutCommandLineInputSpec):
     inversion = traits.Int(argstr='-inversion %d', units='NA',
         desc='Index of the inversion to use. The default is 1 (linear single tensor inversion).')
 
-    trace = traits.Float(argstr='-trace %d', units='NA',
+    trace = traits.Float(argstr='-trace %f', units='NA',
         desc='Trace of the diffusion tensor(s) used in the test function in the LUT generation. The default is 2100E-12 m^2 s^-1.')
 
     scheme_file = File(argstr='-schemefile %s', mandatory=True, position=2,
         desc='The scheme file of the images to be processed using this LUT.')
+    
+    cross = traits.Float(argstr='-cross %d', desc='The angle in degrees between the principal directions of the two tensors.')
 
 class DTLUTGenOutputSpec(TraitedSpec):
     dtLUT = File(exists=True, desc='Lookup Table')
@@ -231,12 +233,14 @@ class PicoPDFsInputSpec(StdOutCommandLineInputSpec):
     inputmodel = traits.Enum('dt', 'multitensor', 'pds',
         argstr='-inputmodel %s', position=2, desc='input model type', usedefault=True)
 
-    luts = File(exists=True, argstr='-luts %s',
-        mandatory=False, position=3,
+    luts = InputMultiPath(File(exists=True),argstr='-luts %s',position = 3,
+        mandatory=False,
         desc='Files containing the lookup tables.'\
         'For tensor data, one lut must be specified for each type of inversion used in the image (one-tensor, two-tensor, three-tensor).'\
         'For pds, the number of LUTs must match -numpds (it is acceptable to use the same LUT several times - see example, above).'\
         'These LUTs may be generated with dtlutgen.')
+    
+    #lut_str = traits.Str()
 
     pdf = traits.Enum('watson', 'bingham', 'acg',
         argstr='-pdf %s', position=4, desc=' Specifies the PDF to use. There are three choices:'\

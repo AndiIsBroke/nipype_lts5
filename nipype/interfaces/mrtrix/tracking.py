@@ -71,20 +71,23 @@ class StreamlineTrackInputSpec(CommandLineInputSpec):
     'The type of data required depends on the type of tracking as set in the preceeding argument. For DT methods, ' \
     'the base DWI are needed. For SD methods, the SH harmonic coefficients of the FOD are needed.')
 
-    seed_file = File(exists=True, argstr='-seed %s', mandatory=False, position=2, desc='seed file')
-    seed_spec = traits.List(traits.Int, desc='seed specification in voxels and radius (x y z r)', position=2,
+    seed_file = File(exists=True, argstr='-seed %s', mandatory=True, desc='seed file')
+    seed_spec = traits.List(traits.Int, desc='seed specification in voxels and radius (x y z r)',
         argstr='-seed %s', minlen=4, maxlen=4, sep=',', units='voxels')
-    include_file = File(exists=True, argstr='-include %s', mandatory=False, position=2, desc='inclusion file')
-    include_spec = traits.List(traits.Int, desc='inclusion specification in voxels and radius (x y z r)', position=2,
+    include_file = File(exists=True, argstr='-include %s', mandatory=False, desc='inclusion file')
+    include_spec = traits.List(traits.Int, desc='inclusion specification in voxels and radius (x y z r)',
         argstr='-seed %s', minlen=4, maxlen=4, sep=',', units='voxels')
-    exclude_file = File(exists=True, argstr='-exclude %s', mandatory=False, position=2, desc='exclusion file')
-    exclude_spec = traits.List(traits.Int, desc='exclusion specification in voxels and radius (x y z r)', position=2,
-        argstr='-seed %s', minlen=4, maxlen=4, sep=',', units='voxels')
-    mask_file = File(exists=True, argstr='-exclude %s', mandatory=False, position=2, desc='mask file. Only tracks within mask.')
-    mask_spec = traits.List(traits.Int, desc='Mask specification in voxels and radius (x y z r). Tracks will be terminated when they leave the ROI.', position=2,
-        argstr='-seed %s', minlen=4, maxlen=4, sep=',', units='voxels')
+    exclude_file = File(exists=True, argstr='-exclude %s', mandatory=False, desc='exclusion file')
+    exclude_spec = traits.List(traits.Int, desc='exclusion specification in voxels and radius (x y z r)',
+        argstr='-exclude %s', minlen=4, maxlen=4, sep=',', units='voxels')
+    mask_file = File(exists=True, argstr='-mask %s', mandatory=False, desc='mask file. Only tracks within mask.')
+    mask_spec = traits.List(traits.Int, desc='Mask specification in voxels and radius (x y z r). Tracks will be terminated when they leave the ROI.',
+        argstr='-mask %s', minlen=4, maxlen=4, sep=',', units='voxels')
 
-    inputmodel = traits.Enum('DT_STREAM', 'SD_PROB', 'SD_STREAM',
+    gradient_encoding_file = File(exists=True, argstr='-grad %s', mandatory=False,
+    desc='Gradient encoding, supplied as a 4xN text file with each line is in the format [ X Y Z b ], where [ X Y Z ] describe the direction of the applied gradient, and b gives the b-value in units (1000 s/mm^2). See FSL2MRTrix')
+
+    inputmodel = traits.Enum('DT_STREAM', 'DT_PROB','SD_PROB', 'SD_STREAM', 
         argstr='%s', desc='input model type', usedefault=True, position=-3)
 
     stop = traits.Bool(argstr='-gzip', desc="stop track as soon as it enters any of the include regions.")
@@ -154,7 +157,7 @@ class StreamlineTrack(CommandLine):
 
     def _gen_outfilename(self):
         _, name , _ = split_filename(self.inputs.in_file)
-        return name + '_tracked'
+        return name + '_tracked.tck'
 
 class DiffusionTensorStreamlineTrackInputSpec(StreamlineTrackInputSpec):
     gradient_encoding_file = File(exists=True, argstr='-grad %s', mandatory=True, position=-2,

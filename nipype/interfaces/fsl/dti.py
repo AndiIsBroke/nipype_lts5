@@ -405,15 +405,15 @@ class ProbTrackX(FSLCommand):
             _, _, ext = split_filename(self.inputs.thsamples[i - 1])
             copyfile(self.inputs.thsamples[i - 1],
                      self.inputs.samples_base_name + "_th%dsamples" % i + ext,
-                     copy=False)
+                     copy=True)
             _, _, ext = split_filename(self.inputs.thsamples[i - 1])
             copyfile(self.inputs.phsamples[i - 1],
                      self.inputs.samples_base_name + "_ph%dsamples" % i + ext,
-                     copy=False)
+                     copy=True)
             _, _, ext = split_filename(self.inputs.thsamples[i - 1])
             copyfile(self.inputs.fsamples[i - 1],
                      self.inputs.samples_base_name + "_f%dsamples" % i + ext,
-                     copy=False)
+                     copy=True)
 
         if isdefined(self.inputs.target_masks):
             f = open("targets.txt", "w")

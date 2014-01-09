@@ -37,14 +37,14 @@ class ParcellateInputSpec(BaseInterfaceInputSpec):
 
 
 class ParcellateOutputSpec(TraitedSpec):
-    roi_files = OutputMultiPath(File(exists=True),desc='Region of Interest files for connectivity mapping')
+    #roi_files = OutputMultiPath(File(exists=True),desc='Region of Interest files for connectivity mapping')
     white_matter_mask_file = File(desc='White matter mask file')
-    cc_unknown_file = File(desc='Image file with regions labelled as unknown cortical structures',
-                    exists=True)
-    ribbon_file = File(desc='Image file detailing the cortical ribbon',
-                    exists=True)
-    aseg_file = File(desc='Automated segmentation file converted from Freesurfer "subjects" directory',
-                    exists=True)
+    #cc_unknown_file = File(desc='Image file with regions labelled as unknown cortical structures',
+    #                exists=True)
+    #ribbon_file = File(desc='Image file detailing the cortical ribbon',
+    #                exists=True)
+    #aseg_file = File(desc='Automated segmentation file converted from Freesurfer "subjects" directory',
+    #                exists=True)
     roi_files_in_structural_space = OutputMultiPath(File(exists=True),
                                 desc='ROI image resliced to the dimensions of the original structural image')
 
@@ -90,11 +90,11 @@ class Parcellate(BaseInterface):
         outputs = self._outputs().get()
         
         outputs['white_matter_mask_file'] = op.abspath('fsmask_1mm.nii.gz')
-        outputs['cc_unknown_file'] = op.abspath('cc_unknown.nii.gz')
-        outputs['ribbon_file'] = op.abspath('ribbon.nii.gz')
-        outputs['aseg_file'] = op.abspath('aseg.nii.gz')
+        #outputs['cc_unknown_file'] = op.abspath('cc_unknown.nii.gz')
+        #outputs['ribbon_file'] = op.abspath('ribbon.nii.gz')
+        #outputs['aseg_file'] = op.abspath('aseg.nii.gz')
         
-        outputs['roi_files'] = self._gen_outfilenames('ROI_HR_th')
+        #outputs['roi_files'] = self._gen_outfilenames('ROI_HR_th')
         outputs['roi_files_in_structural_space'] = self._gen_outfilenames('ROIv_HR_th')
 
         return outputs

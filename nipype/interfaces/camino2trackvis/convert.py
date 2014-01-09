@@ -24,15 +24,15 @@ class Camino2TrackvisInputSpec(CommandLineInputSpec):
         units='mm', desc='The minimum length of tracts to output')
 
     data_dims = traits.List(traits.Int, argstr='-d %s', sep=',',
-        mandatory=True, position=4, minlen=3, maxlen=3,
+        mandatory=False, position=4, minlen=3, maxlen=3,
         desc='Three comma-separated integers giving the number of voxels along each dimension of the source scans.')
 
     voxel_dims = traits.List(traits.Float, argstr='-x %s', sep=',',
-        mandatory=True, position=5, minlen=3, maxlen=3,
+        mandatory=False, position=5, minlen=3, maxlen=3,
         desc='Three comma-separated numbers giving the size of each voxel in mm.')
 
     #Change to enum with all combinations? i.e. LAS, LPI, RAS, etc..
-    voxel_order = File(argstr='--voxel-order %s', mandatory=True, position=6,
+    voxel_order = File(argstr='--voxel-order %s', mandatory=False, position=6,
         desc='Set the order in which various directions were stored.\
         Specify with three letters consisting of one each  \
         from the pairs LR, AP, and SI. These stand for Left-Right, \
@@ -40,9 +40,11 @@ class Camino2TrackvisInputSpec(CommandLineInputSpec):
         Whichever is specified in each position will  \
         be the direction of increasing order.  \
         Read coordinate system from a NIfTI file.')
-
+    
     nifti_file = File(argstr='--nifti %s', exists=True,
     mandatory=False, position=7, desc='Read coordinate system from a NIfTI file.')
+    
+    phys_coords = traits.Bool(argstr='--phys-coords', mandatory=False, position = 8, desc='Treat the input tract points as physical coordinates (relevant for the updated camino track command).')
 
 class Camino2TrackvisOutputSpec(TraitedSpec):
     trackvis = File(exists=True, desc='The filename to which to write the .trk (trackvis) file.')
