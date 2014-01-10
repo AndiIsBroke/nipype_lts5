@@ -4,7 +4,7 @@
 """
 
 from .connectivity import Conmap
-from .convert import (Image2Voxel, FSL2Scheme, VtkStreamlines, ProcStreamlines,
+from .convert import (Image2Voxel, Voxel2Image, FSL2Scheme, VtkStreamlines, ProcStreamlines,
                       TractShredder, DT2NIfTI, NIfTIDT2Camino, AnalyzeHeader)
 from .dti import (DTIFit, ModelFit, DTLUTGen, PicoPDFs, Track, TrackPICo,
                   TrackBayesDirac, TrackDT, TrackBallStick, TrackBootstrap,

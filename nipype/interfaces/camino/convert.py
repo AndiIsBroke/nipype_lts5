@@ -60,6 +60,47 @@ class Image2Voxel(StdOutCommandLine):
         _, name , _ = split_filename(self.inputs.in_file)
         return name + '.B'+ self.inputs.out_type
 
+class Voxel2ImageInputSpec(StdOutCommandLineInputSpec):
+    in_file = File(exists=True, argstr='-inputfile %s', position=1,
+                    mandatory=True,
+                    desc='image in camino format')
+    header_file = File(exists=True, mandatory=True, argstr='-header %s', position=2, desc="file with desired format")
+    components = traits.Int(argstr='-components %d',mandatory=False,desc="Number of components in inputfile")
+    gzip = traits.Bool(argstr="-gzip",mandatory=False,desc="Compress output image") 
+    out_type = traits.Enum("float", "char", "short", "int", "long", "double", argstr='-outputdatatype %s',
+                           desc='"i.e. Bfloat". Can be "char", "short", "int", "long", "float" or "double"', usedefault=True)
+    output_root = traits.Str(argstr="-outputroot %s", position=-1, default_value='converted', usedefault=True)
+
+class Voxel2ImageOutputSpec(TraitedSpec):
+    image_file = File(exists=True, desc='path/name to converted file')
+
+class Voxel2Image(StdOutCommandLine):
+    """
+    Converts voxel order image to NIFTI / MHA files.
+
+    Converts voxel-order data to scanner-order data in a supported image format.
+
+    Examples
+    --------
+
+    >>> import nipype.interfaces.camino as cmon
+    >>> vox2img = cmon.Voxel2Image()
+    >>> vox2img.inputs.in_file = 'fa.img'
+    >>> vox2img.run()                  # doctest: +SKIP
+    """
+    _cmd = 'voxel2image'
+    input_spec = Voxel2ImageInputSpec
+    output_spec = Voxel2ImageOutputSpec
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        outputs['image_file'] = os.path.abspath(self._gen_outfilename())
+        return outputs
+
+    def _gen_outfilename(self):
+        _, _, ext = split_filename(self.inputs.header_file)
+        return self.inputs.output_root + ext
+
 class FSL2SchemeInputSpec(StdOutCommandLineInputSpec):
     bvec_file = File(exists=True, argstr='-bvecfile %s',
                     mandatory=True, position=1,
