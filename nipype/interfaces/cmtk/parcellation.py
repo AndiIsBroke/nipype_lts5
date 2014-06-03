@@ -18,6 +18,13 @@ import warnings
 from ... import logging
 iflogger = logging.getLogger('interface')
 
+import numpy as np
+import nibabel as ni
+try:
+    import scipy.ndimage.morphology as nd
+except ImportError:
+    raise Exception('Need scipy for binary erosion of white matter and CSF masks')
+
 #have_cmtk = True
 #try:
 #    package_check('cmtklib')
@@ -29,6 +36,41 @@ from cmtklib.parcellation import (get_parcellation, create_annot_label,
                                  create_roi, create_wm_mask,
                                  crop_and_move_datasets, generate_WM_and_GM_mask,
                                  crop_and_move_WM_and_GM)
+
+def erode_mask(maskFile):
+    # Define erosion mask
+    imerode = nd.binary_erosion
+    se = np.zeros( (3,3,3) )
+    se[1,:,1] = 1; se[:,1,1] = 1; se[1,1,:] = 1
+    
+    # Erode mask
+    mask = ni.load( maskFile ).get_data().astype( np.uint32 )
+    er_mask = np.zeros( mask.shape )
+    idx = np.where( (mask == 1) )
+    er_mask[idx] = 1
+    er_mask = imerode(er_mask,se)
+    er_mask = imerode(er_mask,se)
+    img = ni.Nifti1Image(er_mask, ni.load( maskFile ).get_affine(), ni.load( maskFile ).get_header())
+    ni.save(img, op.abspath('%s_eroded.nii.gz' % os.path.splitext(op.splitext(op.basename(maskFile))[0])[0]))
+
+class Erode_inputspec(BaseInterfaceInputSpec):
+    in_file = File(exists=True)
+    
+class Erode_outputspec(TraitedSpec):
+    out_file = File(exists=True)
+
+class Erode(BaseInterface):
+    input_spec = Erode_inputspec
+    output_spec = Erode_outputspec
+
+    def _run_interface(self, runtime):
+        erode_mask(self.inputs.in_file)
+        return runtime
+    
+    def _list_outputs(self):
+        outputs = self._outputs().get()
+        outputs['out_file'] = op.abspath('%s_eroded.nii.gz' % os.path.splitext(op.splitext(op.basename(self.inputs.in_file))[0])[0])
+        return outputs
 
 class ParcellateInputSpec(BaseInterfaceInputSpec):
     subjects_dir = Directory(desc='Freesurfer main directory')
@@ -45,6 +87,9 @@ class ParcellateOutputSpec(TraitedSpec):
     #                exists=True)
     #aseg_file = File(desc='Automated segmentation file converted from Freesurfer "subjects" directory',
     #                exists=True)
+    wm_eroded = File(desc="Eroded wm file in original space")
+    csf_eroded = File(desc="Eroded csf file in original space")
+    brain_eroded = File(desc="Eroded brain file in original space")
     roi_files_in_structural_space = OutputMultiPath(File(exists=True),
                                 desc='ROI image resliced to the dimensions of the original structural image')
 
@@ -79,9 +124,15 @@ class Parcellate(BaseInterface):
             create_annot_label(self.inputs.subject_id, self.inputs.subjects_dir)
             create_roi(self.inputs.subject_id, self.inputs.subjects_dir)
             create_wm_mask(self.inputs.subject_id, self.inputs.subjects_dir)
+            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','fsmask_1mm.nii.gz'))
+            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','csf_mask.nii.gz'))
+            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','brainmask.nii.gz'))
             crop_and_move_datasets(self.inputs.subject_id, self.inputs.subjects_dir)
         if self.inputs.parcellation_scheme == "NativeFreesurfer":
             generate_WM_and_GM_mask(self.inputs.subject_id, self.inputs.subjects_dir)
+            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','fsmask_1mm.nii.gz'))
+            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','csf_mask.nii.gz'))
+            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','brainmask.nii.gz'))
             crop_and_move_WM_and_GM(self.inputs.subject_id, self.inputs.subjects_dir)
             
         return runtime
@@ -96,6 +147,9 @@ class Parcellate(BaseInterface):
         
         #outputs['roi_files'] = self._gen_outfilenames('ROI_HR_th')
         outputs['roi_files_in_structural_space'] = self._gen_outfilenames('ROIv_HR_th')
+        outputs['wm_eroded'] = op.abspath('wm_eroded.nii.gz')
+        outputs['csf_eroded'] = op.abspath('csf_eroded.nii.gz')
+        outputs['brain_eroded'] = op.abspath('brain_eroded.nii.gz')
 
         return outputs
 
