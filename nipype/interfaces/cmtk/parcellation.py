@@ -76,6 +76,7 @@ class ParcellateInputSpec(BaseInterfaceInputSpec):
     subjects_dir = Directory(desc='Freesurfer main directory')
     subject_id = traits.String(mandatory=True, desc='Subject ID')
     parcellation_scheme = traits.Enum('Lausanne2008',['Lausanne2008','NativeFreesurfer'], usedefault = True)
+    erode_masks = traits.Bool(False)
 
 
 class ParcellateOutputSpec(TraitedSpec):
@@ -124,15 +125,17 @@ class Parcellate(BaseInterface):
             create_annot_label(self.inputs.subject_id, self.inputs.subjects_dir)
             create_roi(self.inputs.subject_id, self.inputs.subjects_dir)
             create_wm_mask(self.inputs.subject_id, self.inputs.subjects_dir)
-            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','fsmask_1mm.nii.gz'))
-            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','csf_mask.nii.gz'))
-            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','brainmask.nii.gz'))
+            if self.inputs.erode_masks:
+                erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','fsmask_1mm.nii.gz'))
+                erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','csf_mask.nii.gz'))
+                erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','brainmask.nii.gz'))
             crop_and_move_datasets(self.inputs.subject_id, self.inputs.subjects_dir)
         if self.inputs.parcellation_scheme == "NativeFreesurfer":
             generate_WM_and_GM_mask(self.inputs.subject_id, self.inputs.subjects_dir)
-            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','fsmask_1mm.nii.gz'))
-            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','csf_mask.nii.gz'))
-            erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','brainmask.nii.gz'))
+            if self.inputs.erode_masks:
+                erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','fsmask_1mm.nii.gz'))
+                erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','csf_mask.nii.gz'))
+                erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','brainmask.nii.gz'))
             crop_and_move_WM_and_GM(self.inputs.subject_id, self.inputs.subjects_dir)
             
         return runtime
@@ -147,9 +150,11 @@ class Parcellate(BaseInterface):
         
         #outputs['roi_files'] = self._gen_outfilenames('ROI_HR_th')
         outputs['roi_files_in_structural_space'] = self._gen_outfilenames('ROIv_HR_th')
-        outputs['wm_eroded'] = op.abspath('wm_eroded.nii.gz')
-        outputs['csf_eroded'] = op.abspath('csf_eroded.nii.gz')
-        outputs['brain_eroded'] = op.abspath('brain_eroded.nii.gz')
+        
+        if self.inputs.erode_masks:
+            outputs['wm_eroded'] = op.abspath('wm_eroded.nii.gz')
+            outputs['csf_eroded'] = op.abspath('csf_eroded.nii.gz')
+            outputs['brain_eroded'] = op.abspath('brain_eroded.nii.gz')
 
         return outputs
 
