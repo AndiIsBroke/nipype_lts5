@@ -13,6 +13,7 @@ from nipype.interfaces.base import CommandLineInputSpec, CommandLine, traits, Tr
 from nipype.utils.filemanip import split_filename
 import os, os.path as op
 
+
 class MRConvertInputSpec(CommandLineInputSpec):
     in_file = File(exists=True, argstr='%s', mandatory=True, position=-2,
         desc='voxel-order data filename')
