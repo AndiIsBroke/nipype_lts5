@@ -84,6 +84,7 @@ class MRConvertInputSpec(CommandLineInputSpec):
         units='mm', desc='Apply offset to the intensity values.')
     replace_NaN_with_zero = traits.Bool(argstr='-zero', position=3, desc="Replace all NaN values with zero.")
     prs = traits.Bool(argstr='-prs', position=3, desc="Assume that the DW gradients are specified in the PRS frame (Siemens DICOM only).")
+    grad_fsl = traits.Tuple(File(exists=True), File(exists=True), argstr='-fslgrad %s %s', desc='(bvecs, bvals) DW gradient scheme (FSL format)')
 
 class MRConvertOutputSpec(TraitedSpec):
     converted = File(exists=True, desc='path/name of 4D volume in voxel order')
