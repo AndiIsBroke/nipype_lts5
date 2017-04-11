@@ -13,6 +13,53 @@ from nipype.interfaces.base import CommandLineInputSpec, CommandLine, traits, Tr
 from nipype.utils.filemanip import split_filename
 import os, os.path as op
 
+class DWIDenoiseInputSpec(CommandLineInputSpec):
+    in_file = File(exists=True, argstr='%s', mandatory=True, position=-2, desc='Input diffusion-weighted image filename')
+    out_file = File(genfile=True, argstr='%s', position=-1, desc='Output denoised DWI image filename.')
+    
+    mask = File(argstr="-mask %s",position=1,mandatory=False,desc="Only perform computation within the specified binary brain mask image. (optional)")
+    extent_window = traits.List(traits.Float, argstr='-extent %s', sep=',',position=1, minlen=3, maxlen=3,desc='Three comma-separated numbers giving the window size of the denoising filter.')
+    out_noisemap = File(genfile=True, argstr='-noise %s', position=1, desc='Output noise map filename.')
+
+    #quiet = traits.Bool(argstr='-quiet', position=1, desc="Do not display information messages or progress status.")
+    #debug = traits.Bool(argstr='-debug', position=1, desc="Display debugging messages.")
+
+class DWIDenoiseOutputSpec(TraitedSpec):
+    out_file = File(exists=True, desc='Output denoised DWI image.')
+    out_noisemap = File(exists=True, desc='Output noise map (if generated).')
+
+class DWIDenoise(CommandLine):
+    _cmd = 'dwidenoise'
+    input_spec = DWIDenoiseInputSpec
+    output_spec = DWIDenoiseOutputSpec
+
+    def _run_interface(self, runtime):
+        # The returncode is meaningless in DWIDenoise.  So check the output
+        # in stderr and if it's set, then update the returncode
+        # accordingly.
+        runtime = super(DWIDenoise, self)._run_interface(runtime)
+        if runtime.stderr:
+            self.raise_exception(runtime)
+        return runtime
+
+    def _gen_outfilename(self):
+        out_file = self.inputs.out_file
+        if not isdefined(out_file) and isdefined(self.inputs.in_file):
+            out_file = self._gen_fname(self.inputs.in_file, suffix='_denoised')
+        return os.path.abspath(out_file)
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        outputs['out_file'] = self._gen_outfilename()
+        if isdefined(self.inputs.out_noisemap) and self.inputs.out_noisemap:
+            outputs['out_noisemap'] = self._gen_fname(self.inputs.in_file, suffix='_noisemap')
+        return output
+
+    def _gen_filename(self, name):
+        if name == 'out_file':
+            return self._gen_outfilename()
+        return None
+
 
 class MRConvertInputSpec(CommandLineInputSpec):
     in_file = File(exists=True, argstr='%s', mandatory=True, position=-2,
