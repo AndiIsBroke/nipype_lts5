@@ -10,7 +10,7 @@
 """
 
 from nipype.interfaces.base import CommandLineInputSpec, CommandLine, traits, TraitedSpec, File, InputMultiPath, isdefined
-from nipype.utils.filemanip import split_filename
+from nipype.utils.filemanip import split_filename, fname_presuffix
 import os, os.path as op
 
 class DWIDenoiseInputSpec(CommandLineInputSpec):
@@ -18,29 +18,74 @@ class DWIDenoiseInputSpec(CommandLineInputSpec):
     out_file = File(genfile=True, argstr='%s', position=-1, desc='Output denoised DWI image filename.')
     
     mask = File(argstr="-mask %s",position=1,mandatory=False,desc="Only perform computation within the specified binary brain mask image. (optional)")
-    extent_window = traits.List(traits.Float, argstr='-extent %s', sep=',',position=1, minlen=3, maxlen=3,desc='Three comma-separated numbers giving the window size of the denoising filter.')
-    out_noisemap = File(genfile=True, argstr='-noise %s', position=1, desc='Output noise map filename.')
+    extent_window = traits.List(traits.Float, argstr='-extent %s', sep=',',position=2, minlen=3, maxlen=3,desc='Three comma-separated numbers giving the window size of the denoising filter.')
+    out_noisemap = File(argstr='-noise %s', position=3, desc='Output noise map filename.')
 
+    force_writing = traits.Bool(argstr='-force', position=4, desc="Force file overwriting.")
     #quiet = traits.Bool(argstr='-quiet', position=1, desc="Do not display information messages or progress status.")
-    #debug = traits.Bool(argstr='-debug', position=1, desc="Display debugging messages.")
+    debug = traits.Bool(argstr='-debug', position=5, desc="Display debugging messages.")
 
 class DWIDenoiseOutputSpec(TraitedSpec):
     out_file = File(exists=True, desc='Output denoised DWI image.')
     out_noisemap = File(exists=True, desc='Output noise map (if generated).')
 
 class DWIDenoise(CommandLine):
-    _cmd = 'dwidenoise'
+    cmd = 'dwidenoise'
     input_spec = DWIDenoiseInputSpec
     output_spec = DWIDenoiseOutputSpec
 
-    def _run_interface(self, runtime):
-        # The returncode is meaningless in DWIDenoise.  So check the output
-        # in stderr and if it's set, then update the returncode
-        # accordingly.
-        runtime = super(DWIDenoise, self)._run_interface(runtime)
-        if runtime.stderr:
-            self.raise_exception(runtime)
-        return runtime
+    # def _run_interface(self, runtime):
+    #     # The returncode is meaningless in DWIDenoise.  So check the output
+    #     # in stderr and if it's set, then update the returncode
+    #     # accordingly.
+    #     runtime = super(DWIDenoise, self)._run_interface(runtime)
+    #     if runtime.stderr:
+    #         self.raise_exception(runtime)
+    #     return runtime
+
+    def _gen_fname(self, basename, cwd=None, suffix=None, change_ext=True,
+                   ext='.mif'):
+        """Generate a filename based on the given parameters.
+
+        The filename will take the form: cwd/basename<suffix><ext>.
+        If change_ext is True, it will use the extentions specified in
+        <instance>intputs.output_type.
+
+        Parameters
+        ----------
+        basename : str
+            Filename to base the new filename on.
+        cwd : str
+            Path to prefix to the new filename. (default is os.getcwd())
+        suffix : str
+            Suffix to add to the `basename`.  (defaults is '' )
+        change_ext : bool
+            Flag to change the filename extension to the FSL output type.
+            (default True)
+
+        Returns
+        -------
+        fname : str
+            New filename based on given parameters.
+
+        """
+
+        if basename == '':
+            msg = 'Unable to generate filename for command %s. ' % self.cmd
+            msg += 'basename is not set!'
+            raise ValueError(msg)
+        if cwd is None:
+            cwd = os.getcwd()
+        if change_ext:
+            if suffix:
+                suffix = ''.join((suffix, ext))
+            else:
+                suffix = ext
+        if suffix is None:
+            suffix = ''
+        fname = fname_presuffix(basename, suffix=suffix,
+                                use_ext=False, newpath=cwd)
+        return fname
 
     def _gen_outfilename(self):
         out_file = self.inputs.out_file
@@ -53,7 +98,7 @@ class DWIDenoise(CommandLine):
         outputs['out_file'] = self._gen_outfilename()
         if isdefined(self.inputs.out_noisemap) and self.inputs.out_noisemap:
             outputs['out_noisemap'] = self._gen_fname(self.inputs.in_file, suffix='_noisemap')
-        return output
+        return outputs
 
     def _gen_filename(self, name):
         if name == 'out_file':
@@ -84,6 +129,7 @@ class MRConvertInputSpec(CommandLineInputSpec):
         units='mm', desc='Apply offset to the intensity values.')
     replace_NaN_with_zero = traits.Bool(argstr='-zero', position=3, desc="Replace all NaN values with zero.")
     prs = traits.Bool(argstr='-prs', position=3, desc="Assume that the DW gradients are specified in the PRS frame (Siemens DICOM only).")
+    grad = File(exists=True, argstr='-grad %s', position=3, desc='Gradient encoding, supplied as a 4xN text file with each line is in the format [ X Y Z b ], where [ X Y Z ] describe the direction of the applied gradient, and b gives the b-value in units (1000 s/mm^2). See FSL2MRTrix')
     grad_fsl = traits.Tuple(File(exists=True), File(exists=True), argstr='-fslgrad %s %s', desc='(bvecs, bvals) DW gradient scheme (FSL format)')
 
 class MRConvertOutputSpec(TraitedSpec):

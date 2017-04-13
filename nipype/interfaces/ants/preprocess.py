@@ -15,7 +15,7 @@ import os
 
 
 class N4BiasFieldCorrectionInputSpec(ANTSCommandInputSpec):
-    dimension = traits.Enum(3, 2, argstr='--image-dimension %d', usedefault=True,
+    dimension = traits.Enum(3, 2, argstr='--image-dimensionality %d', usedefault=True,
                             desc='image dimension (2 or 3)')
     input_image = File(argstr='--input-image %s', mandatory=True,
                         desc=('image to apply transformation to (generally a '
