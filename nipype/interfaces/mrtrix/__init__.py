@@ -6,7 +6,7 @@ from .tracking import (Tracks2Prob, StreamlineTrack,
                        ProbabilisticSphericallyDeconvolutedStreamlineTrack)
 from .tensors import (FSL2MRTrix, ConstrainedSphericalDeconvolution,
                       DWI2SphericalHarmonicsImage, EstimateResponseForSH)
-from .preprocess import (DWIDenoise, MRConvert, MRMultiply, MRTrixViewer, MRTrixInfo,
+from .preprocess import (DWIDenoise, DWIBiasCorrect, MRConvert, MRMultiply, MRTrixViewer, MRTrixInfo,
                          GenerateWhiteMatterMask, DWI2Tensor,
                          Tensor2ApparentDiffusion, Tensor2FractionalAnisotropy,
                          Tensor2Vector, MedianFilter3D, Erode, Threshold)

@@ -105,6 +105,91 @@ class DWIDenoise(CommandLine):
             return self._gen_outfilename()
         return None
 
+class DWIBiasCorrectInputSpec(CommandLineInputSpec):
+    in_file = File(exists=True, argstr='%s', mandatory=True, position=-2, desc='The input image series to be corrected')
+    out_file = File(genfile=True, argstr='%s', position=-1, desc='The output corrected image series')
+    
+    mask = File(argstr="-mask %s",position=2,mandatory=False,desc="Manually provide a mask image for bias field estimation (optional)")
+    out_bias = File(genfile=True, argstr='-bias %s', position=3, desc='Output the estimated bias field')
+
+    _xor_inputs = ('use_ants', 'use_fsl')
+    use_ants = traits.Bool(argstr='-ants', position=1, desc="Use ANTS N4 to estimate the inhomogeneity field", xor=_xor_inputs)
+    use_fsl = traits.Bool(argstr='-fsl', position=1, desc="Use FSL FAST to estimate the inhomogeneity field", xor=_xor_inputs)
+
+    force_writing = traits.Bool(argstr='-force', position=4, desc="Force file overwriting.")
+    #quiet = traits.Bool(argstr='-quiet', position=1, desc="Do not display information messages or progress status.")
+    debug = traits.Bool(argstr='-debug', position=5, desc="Display debugging messages.")
+
+class DWIBiasCorrectOutputSpec(TraitedSpec):
+    out_file = File(exists=True, desc='Output corrected DWI image')
+    out_bias = File(exists=True, desc='Output estimated bias field')
+
+class DWIBiasCorrect(CommandLine):
+    cmd = 'dwibiascorrect'
+    input_spec = DWIBiasCorrectInputSpec
+    output_spec = DWIBiasCorrectOutputSpec
+
+    def _gen_fname(self, basename, cwd=None, suffix=None, change_ext=True,
+                   ext='.mif'):
+        """Generate a filename based on the given parameters.
+
+        The filename will take the form: cwd/basename<suffix><ext>.
+        If change_ext is True, it will use the extentions specified in
+        <instance>intputs.output_type.
+
+        Parameters
+        ----------
+        basename : str
+            Filename to base the new filename on.
+        cwd : str
+            Path to prefix to the new filename. (default is os.getcwd())
+        suffix : str
+            Suffix to add to the `basename`.  (defaults is '' )
+        change_ext : bool
+            Flag to change the filename extension to the FSL output type.
+            (default True)
+
+        Returns
+        -------
+        fname : str
+            New filename based on given parameters.
+
+        """
+
+        if basename == '':
+            msg = 'Unable to generate filename for command %s. ' % self.cmd
+            msg += 'basename is not set!'
+            raise ValueError(msg)
+        if cwd is None:
+            cwd = os.getcwd()
+        if change_ext:
+            if suffix:
+                suffix = ''.join((suffix, ext))
+            else:
+                suffix = ext
+        if suffix is None:
+            suffix = ''
+        fname = fname_presuffix(basename, suffix=suffix,
+                                use_ext=False, newpath=cwd)
+        return fname
+
+    def _gen_outfilename(self):
+        out_file = self.inputs.out_file
+        if not isdefined(out_file) and isdefined(self.inputs.in_file):
+            out_file = self._gen_fname(self.inputs.in_file, suffix='_biascorr')
+        return os.path.abspath(out_file)
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        outputs['out_file'] = self._gen_outfilename()
+        if isdefined(self.inputs.out_bias) and self.inputs.out_bias:
+            outputs['out_bias'] = self._gen_fname(self.inputs.in_file, suffix='_biasfield')
+        return outputs
+
+    def _gen_filename(self, name):
+        if name == 'out_file':
+            return self._gen_outfilename()
+        return None
 
 class MRConvertInputSpec(CommandLineInputSpec):
     in_file = File(exists=True, argstr='%s', mandatory=True, position=-2,
@@ -117,8 +202,8 @@ class MRConvertInputSpec(CommandLineInputSpec):
     voxel_dims = traits.List(traits.Float, argstr='-vox %s', sep=',',
         position=3, minlen=3, maxlen=3,
         desc='Three comma-separated numbers giving the size of each voxel in mm.')
-    output_datatype = traits.Enum("nii", "float", "char", "short", "int", "long", "double", argstr='-output %s', position=2,
-                           desc='"i.e. Bfloat". Can be "char", "short", "int", "long", "float" or "double"') #, usedefault=True)
+    output_datatype = traits.Enum("float32", "float32le","float32be", "float64", "float64le", "float64be", "int64", "uint64", "int64le","uint64le", "int64be", "uint64be", "int32", "uint32", "int32le", "uint32le", "int32be","uint32be", "int16", "uint16", "int16le", "uint16le", "int16be", "uint16be", "cfloat32","cfloat32le", "cfloat32be", "cfloat64", "cfloat64le", "cfloat64be", "int8", "uint8","bit", argstr='-datatype %s', position=2,
+                           desc='"specify output image data type. Valid choices are: float32, float32le, float32be, float64, float64le, float64be, int64, uint64, int64le, uint64le, int64be, uint64be, int32, uint32, int32le, uint32le, int32be, uint32be, int16, uint16, int16le, uint16le, int16be, uint16be, cfloat32, cfloat32le, cfloat32be, cfloat64, cfloat64le, cfloat64be, int8, uint8, bit."') #, usedefault=True)
     extension = traits.Enum("mif","nii", "float", "char", "short", "int", "long", "double", position=2,
                            desc='"i.e. Bfloat". Can be "char", "short", "int", "long", "float" or "double"', usedefault=True)
     layout = traits.Enum("nii", "float", "char", "short", "int", "long", "double", argstr='-output %s', position=2,
