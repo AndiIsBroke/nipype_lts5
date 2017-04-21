@@ -204,18 +204,18 @@ class MRConvertInputSpec(CommandLineInputSpec):
         desc='Three comma-separated numbers giving the size of each voxel in mm.')
     output_datatype = traits.Enum("float32", "float32le","float32be", "float64", "float64le", "float64be", "int64", "uint64", "int64le","uint64le", "int64be", "uint64be", "int32", "uint32", "int32le", "uint32le", "int32be","uint32be", "int16", "uint16", "int16le", "uint16le", "int16be", "uint16be", "cfloat32","cfloat32le", "cfloat32be", "cfloat64", "cfloat64le", "cfloat64be", "int8", "uint8","bit", argstr='-datatype %s', position=2,
                            desc='"specify output image data type. Valid choices are: float32, float32le, float32be, float64, float64le, float64be, int64, uint64, int64le, uint64le, int64be, uint64be, int32, uint32, int32le, uint32le, int32be, uint32be, int16, uint16, int16le, uint16le, int16be, uint16be, cfloat32, cfloat32le, cfloat32be, cfloat64, cfloat64le, cfloat64be, int8, uint8, bit."') #, usedefault=True)
-    extension = traits.Enum("mif","nii", "float", "char", "short", "int", "long", "double", position=2,
+    extension = traits.Enum("mif","nii", "float", "char", "short", "int", "long", "double", position=4,
                            desc='"i.e. Bfloat". Can be "char", "short", "int", "long", "float" or "double"', usedefault=True)
-    layout = traits.Enum("nii", "float", "char", "short", "int", "long", "double", argstr='-output %s', position=2,
+    layout = traits.Enum("nii", "float", "char", "short", "int", "long", "double", argstr='-output %s', position=5,
                            desc='specify the layout of the data in memory. The actual layout produced will depend on whether the output image format can support it.')
-    resample = traits.Float(argstr='-scale %d', position=3,
+    resample = traits.Float(argstr='-scale %d', position=6,
         units='mm', desc='Apply scaling to the intensity values.')
-    offset_bias = traits.Float(argstr='-scale %d', position=3,
+    offset_bias = traits.Float(argstr='-scale %d', position=7,
         units='mm', desc='Apply offset to the intensity values.')
-    replace_NaN_with_zero = traits.Bool(argstr='-zero', position=3, desc="Replace all NaN values with zero.")
+    replace_NaN_with_zero = traits.Bool(argstr='-zero', position=8, desc="Replace all NaN values with zero.")
     prs = traits.Bool(argstr='-prs', position=3, desc="Assume that the DW gradients are specified in the PRS frame (Siemens DICOM only).")
-    grad = File(exists=True, argstr='-grad %s', position=3, desc='Gradient encoding, supplied as a 4xN text file with each line is in the format [ X Y Z b ], where [ X Y Z ] describe the direction of the applied gradient, and b gives the b-value in units (1000 s/mm^2). See FSL2MRTrix')
-    grad_fsl = traits.Tuple(File(exists=True), File(exists=True), argstr='-fslgrad %s %s', desc='(bvecs, bvals) DW gradient scheme (FSL format)')
+    grad = File(exists=True, argstr='-grad %s', position=9, desc='Gradient encoding, supplied as a 4xN text file with each line is in the format [ X Y Z b ], where [ X Y Z ] describe the direction of the applied gradient, and b gives the b-value in units (1000 s/mm^2). See FSL2MRTrix')
+    grad_fsl = traits.Tuple(File(exists=True),File(exists=True), argstr='-fslgrad %s %s', desc='[bvecs, bvals] DW gradient scheme (FSL format)')
 
 class MRConvertOutputSpec(TraitedSpec):
     converted = File(exists=True, desc='path/name of 4D volume in voxel order')
