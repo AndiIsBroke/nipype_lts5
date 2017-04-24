@@ -9,7 +9,7 @@
 
 """
 
-from nipype.interfaces.base import CommandLineInputSpec, CommandLine, traits, TraitedSpec, File, InputMultiPath, isdefined
+from nipype.interfaces.base import CommandLineInputSpec, CommandLine, traits, TraitedSpec, File, Directory, InputMultiPath, isdefined
 from nipype.utils.filemanip import split_filename, fname_presuffix
 import os, os.path as op
 
@@ -192,8 +192,13 @@ class DWIBiasCorrect(CommandLine):
         return None
 
 class MRConvertInputSpec(CommandLineInputSpec):
-    in_file = File(exists=True, argstr='%s', mandatory=True, position=-2,
+    _xor_inputs = ('in_file','in_dir')
+
+    in_file = File(exists=True, argstr='%s', mandatory=True, position=-2,xor=_xor_inputs,
         desc='voxel-order data filename')
+    in_dir = Directory(exists=True, argstr='%s', mandatory=True, position=-2,xor=_xor_inputs,
+        desc='directory containing DICOM files')
+
     out_filename = File(genfile=True, argstr='%s', position=-1, desc='Output filename')
     extract_at_axis = traits.Enum(1,2,3, argstr='-coord %s', position=1,
                            desc='"Extract data only at the coordinates specified. This option specifies the Axis. Must be used in conjunction with extract_at_coordinate.')
@@ -216,6 +221,9 @@ class MRConvertInputSpec(CommandLineInputSpec):
     prs = traits.Bool(argstr='-prs', position=3, desc="Assume that the DW gradients are specified in the PRS frame (Siemens DICOM only).")
     grad = File(exists=True, argstr='-grad %s', position=9, desc='Gradient encoding, supplied as a 4xN text file with each line is in the format [ X Y Z b ], where [ X Y Z ] describe the direction of the applied gradient, and b gives the b-value in units (1000 s/mm^2). See FSL2MRTrix')
     grad_fsl = traits.Tuple(File(exists=True),File(exists=True), argstr='-fslgrad %s %s', desc='[bvecs, bvals] DW gradient scheme (FSL format)')
+
+    force_writing = traits.Bool(argstr='-force', desc="Force file overwriting.")
+    quiet = traits.Bool(argstr='-quiet', desc="Do not display information messages or progress status.")
 
 class MRConvertOutputSpec(TraitedSpec):
     converted = File(exists=True, desc='path/name of 4D volume in voxel order')
