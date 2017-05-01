@@ -35,7 +35,7 @@ except ImportError:
 from cmtklib.parcellation import (get_parcellation, create_annot_label, 
                                  create_roi, create_wm_mask,
                                  crop_and_move_datasets, generate_WM_and_GM_mask,
-                                 crop_and_move_WM_and_GM)
+                                 crop_and_move_WM_and_GM,create_T1_and_Brain)
 
 def erode_mask(maskFile):
     # Define erosion mask
@@ -93,6 +93,9 @@ class ParcellateOutputSpec(TraitedSpec):
     brain_eroded = File(desc="Eroded brain file in original space")
     roi_files_in_structural_space = OutputMultiPath(File(exists=True),
                                 desc='ROI image resliced to the dimensions of the original structural image')
+    T1 = File(desc="T1 image file")
+    brain = File(desc="Brain-masked T1 image file")
+    brain_mask = File(desc="Brain mask file")
 
 
 class Parcellate(BaseInterface):
@@ -122,6 +125,7 @@ class Parcellate(BaseInterface):
         iflogger.info("=============================================")
         
         if self.inputs.parcellation_scheme == "Lausanne2008":
+            create_T1_and_Brain(self.inputs.subject_id, self.inputs.subjects_dir)
             create_annot_label(self.inputs.subject_id, self.inputs.subjects_dir)
             create_roi(self.inputs.subject_id, self.inputs.subjects_dir)
             create_wm_mask(self.inputs.subject_id, self.inputs.subjects_dir)
@@ -131,6 +135,7 @@ class Parcellate(BaseInterface):
                 erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','brainmask.nii.gz'))
             crop_and_move_datasets(self.inputs.subject_id, self.inputs.subjects_dir)
         if self.inputs.parcellation_scheme == "NativeFreesurfer":
+            create_T1_and_Brain(self.inputs.subject_id, self.inputs.subjects_dir)
             generate_WM_and_GM_mask(self.inputs.subject_id, self.inputs.subjects_dir)
             if self.inputs.erode_masks:
                 erode_mask(op.join(self.inputs.subjects_dir,self.inputs.subject_id,'mri','fsmask_1mm.nii.gz'))
@@ -142,6 +147,10 @@ class Parcellate(BaseInterface):
 
     def _list_outputs(self):
         outputs = self._outputs().get()
+
+        outputs['T1'] = op.abspath('T1.nii.gz')
+        outputs['brain'] = op.abspath('brain.nii.gz')
+        outputs['brain_mask'] = op.abspath('brain_mask.nii.gz')
         
         outputs['white_matter_mask_file'] = op.abspath('fsmask_1mm.nii.gz')
         #outputs['cc_unknown_file'] = op.abspath('cc_unknown.nii.gz')
@@ -154,7 +163,7 @@ class Parcellate(BaseInterface):
         if self.inputs.erode_masks:
             outputs['wm_eroded'] = op.abspath('wm_eroded.nii.gz')
             outputs['csf_eroded'] = op.abspath('csf_eroded.nii.gz')
-            outputs['brain_eroded'] = op.abspath('brain_eroded.nii.gz')
+            outputs['brain_eroded'] = op.abspath('brainmask_eroded.nii.gz')
 
         return outputs
 

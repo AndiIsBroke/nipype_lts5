@@ -207,6 +207,9 @@ class MRConvertInputSpec(CommandLineInputSpec):
     voxel_dims = traits.List(traits.Float, argstr='-vox %s', sep=',',
         position=3, minlen=3, maxlen=3,
         desc='Three comma-separated numbers giving the size of each voxel in mm.')
+    stride = traits.List(traits.Int, argstr='-stride %s', sep=',',
+        position=3, minlen=3, maxlen=4,
+        desc='Three to four comma-separated numbers specifying the strides of the output data in memory. The actual strides produced will depend on whether the output image format can support it..')
     output_datatype = traits.Enum("float32", "float32le","float32be", "float64", "float64le", "float64be", "int64", "uint64", "int64le","uint64le", "int64be", "uint64be", "int32", "uint32", "int32le", "uint32le", "int32be","uint32be", "int16", "uint16", "int16le", "uint16le", "int16be", "uint16be", "cfloat32","cfloat32le", "cfloat32be", "cfloat64", "cfloat64le", "cfloat64be", "int8", "uint8","bit", argstr='-datatype %s', position=2,
                            desc='"specify output image data type. Valid choices are: float32, float32le, float32be, float64, float64le, float64be, int64, uint64, int64le, uint64le, int64be, uint64be, int32, uint32, int32le, uint32le, int32be, uint32be, int16, uint16, int16le, uint16le, int16be, uint16be, cfloat32, cfloat32le, cfloat32be, cfloat64, cfloat64le, cfloat64be, int8, uint8, bit."') #, usedefault=True)
     extension = traits.Enum("mif","nii", "float", "char", "short", "int", "long", "double", position=4,

@@ -152,6 +152,60 @@ class EddyCorrect(FSLCommand):
         else:
             return None
 
+class EddyInputSpec(FSLCommandInputSpec):
+    in_file = File(exists=True, desc='File containing all the images to estimate distortions for', argstr='--imain=%s', position=0, mandatory=True)
+    mask = File(exists=True, desc='Mask to indicate brain', argstr='--mask=%s', position=1, mandatory=True)
+    index = File(exists=True, desc='File containing indices for all volumes in --imain into --acqp and --topup', argstr='--index=%s', position=2, mandatory=True)
+    acqp = File(exists=True, desc='File containing acquisition parameters', argstr='--acqp=%s', position=3, mandatory=True)
+    bvecs = File(exists=True, desc='File containing the b-vectors for all volumes in --imain', argstr='--bvecs=%s', position=4, mandatory=True)
+    bvals = File(exists=True, desc='File containing the b-values for all volumes in --imain', argstr='--bvals=%s', position=5, mandatory=True)
+    out_file = File(desc='Basename for output', argstr='--out=%s', position=6, genfile=True, hash_files=False)  
+    verbose = traits.Bool(argstr='--verbose', position=7, desc="Display debugging messages.")
+
+class EddyOutputSpec(TraitedSpec):
+    eddy_corrected = File(exists=True, desc='path/name of 4D eddy corrected output file')
+
+
+class Eddy(FSLCommand):
+    """ 
+
+    Example
+    -------
+
+    >>> from nipype.interfaces import fsl
+    >>> eddyc = fsl.EddyCorrect(in_file='diffusion.nii', out_file="diffusion_edc.nii", ref_num=0)
+    >>> eddyc.cmdline
+    'eddy_correct diffusion.nii diffusion_edc.nii 0'
+
+    """
+    _cmd = 'eddy'
+    input_spec = EddyInputSpec
+    output_spec = EddyOutputSpec
+
+    def __init__(self, **inputs):
+        return super(Eddy, self).__init__(**inputs)
+
+    def _run_interface(self, runtime):
+        if not isdefined(self.inputs.out_file):
+            self.inputs.out_file = self._gen_fname(self.inputs.in_file, suffix='_edc')
+        runtime = super(Eddy, self)._run_interface(runtime)
+        if runtime.stderr:
+            self.raise_exception(runtime)
+        return runtime
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        outputs['eddy_corrected'] = self.inputs.out_file
+        if not isdefined(outputs['eddy_corrected']):
+            outputs['eddy_corrected'] = self._gen_fname(self.inputs.in_file, suffix='_edc')
+        outputs['eddy_corrected'] = os.path.abspath(outputs['eddy_corrected'])
+        return outputs
+
+    def _gen_filename(self, name):
+        if name is 'out_file':
+            return self._list_outputs()['eddy_corrected']
+        else:
+            return None
 
 class BEDPOSTXInputSpec(FSLCommandInputSpec):
     dwi = File(exists=True, desc='diffusion weighted image data file', mandatory=True)
