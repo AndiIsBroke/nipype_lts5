@@ -276,6 +276,7 @@ class DWI2TensorInputSpec(CommandLineInputSpec):
     in_file = InputMultiPath(exists=True, argstr='%s', mandatory=True, position=-2,
         desc='Diffusion-weighted images')
     out_filename = File(genfile=True, argstr='%s', position=-1, desc='Output tensor filename')
+    in_mask_file = File(exists=True, argstr='-mask %s', position=-3, desc='Input DWI mask')
     encoding_file = File(argstr='-grad %s', position= 2, desc='Encoding file, , supplied as a 4xN text file with each line is in the format [ X Y Z b ], where [ X Y Z ] describe the direction of the applied gradient, and b gives the b-value in units (1000 s/mm^2). See FSL2MRTrix()')
     ignore_slice_by_volume = traits.List(traits.Int, argstr='-ignoreslices %s', sep=' ', position=2, minlen=2, maxlen=2,
         desc='Requires two values (i.e. [34 1] for [Slice Volume] Ignores the image slices specified when computing the tensor. Slice here means the z coordinate of the slice to be ignored.')
@@ -363,7 +364,9 @@ class Tensor2Vector(CommandLine):
 class Tensor2FractionalAnisotropyInputSpec(CommandLineInputSpec):
     in_file = File(exists=True, argstr='%s', mandatory=True, position=-2,
         desc='Diffusion tensor image')
-    out_filename = File(genfile=True, argstr='%s', position=-1, desc='Output Fractional Anisotropy filename')
+    in_mask_file = File(exists=True, argstr='-mask %s', position=-3,
+        desc='Diffusion mask')
+    out_filename = File(genfile=True, argstr='-fa %s', position=-1, desc='Output Fractional Anisotropy filename')
     quiet = traits.Bool(argstr='-quiet', position=1, desc="Do not display information messages or progress status.")
     debug = traits.Bool(argstr='-debug', position=1, desc="Display debugging messages.")
 
@@ -728,6 +731,9 @@ class MRTransformInputSpec(CommandLineInputSpec):
     reference_image = File(exists=True, argstr='-reference %s', position=1,
         desc='in case the transform supplied maps from the input image onto a reference image, use this option to specify the reference. Note that this implicitly sets the -replace option.')
     flip_x = traits.Bool(argstr='-flipx', position=1, desc="assume the transform is supplied assuming a coordinate system with the x-axis reversed relative to the MRtrix convention (i.e. x increases from right to left). This is required to handle transform matrices produced by FSL's FLIRT command. This is only used in conjunction with the -reference option.")
+    interp = traits.Enum('nearest','linear', 'cubic', 'sinc',
+                         argstr='-interp %s',
+                         desc='set the interpolation method to use when reslicing (choices: nearest,linear, cubic, sinc. Default: cubic).')
     quiet = traits.Bool(argstr='-quiet', position=1, desc="Do not display information messages or progress status.")
     debug = traits.Bool(argstr='-debug', position=1, desc="Display debugging messages.")
 

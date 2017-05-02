@@ -163,7 +163,8 @@ class EddyInputSpec(FSLCommandInputSpec):
     verbose = traits.Bool(argstr='--verbose', position=7, desc="Display debugging messages.")
 
 class EddyOutputSpec(TraitedSpec):
-    eddy_corrected = File(exists=True, desc='path/name of 4D eddy corrected output file')
+    eddy_corrected = File(exists=True, desc='path/name of 4D eddy corrected DWI file')
+    bvecs_rotated = File(exists=True, desc='path/name of rotated DWI gradient bvecs file')
 
 
 class Eddy(FSLCommand):
@@ -199,6 +200,7 @@ class Eddy(FSLCommand):
         if not isdefined(outputs['eddy_corrected']):
             outputs['eddy_corrected'] = self._gen_fname(self.inputs.in_file, suffix='_edc')
         outputs['eddy_corrected'] = os.path.abspath(outputs['eddy_corrected'])
+        outputs['bvecs_rotated'] = self._gen_fname(self.inputs.in_file, suffix='', ext='.nii.gz.eddy_rotated_bvecs')
         return outputs
 
     def _gen_filename(self, name):
