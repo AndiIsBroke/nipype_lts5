@@ -209,6 +209,50 @@ class Eddy(FSLCommand):
         else:
             return None
 
+
+
+class EddyOpenMP(FSLCommand):
+    """ 
+
+    Example
+    -------
+
+    >>> from nipype.interfaces import fsl
+    >>> eddyc = fsl.EddyCorrect(in_file='diffusion.nii', out_file="diffusion_edc.nii", ref_num=0)
+    >>> eddyc.cmdline
+    'eddy_correct diffusion.nii diffusion_edc.nii 0'
+
+    """
+    _cmd = 'eddy_openmp'
+    input_spec = EddyInputSpec
+    output_spec = EddyOutputSpec
+
+    def __init__(self, **inputs):
+        return super(EddyOpenMP, self).__init__(**inputs)
+
+    def _run_interface(self, runtime):
+        if not isdefined(self.inputs.out_file):
+            self.inputs.out_file = self._gen_fname(self.inputs.in_file, suffix='_edc')
+        runtime = super(EddyOpenMP, self)._run_interface(runtime)
+        if runtime.stderr:
+            self.raise_exception(runtime)
+        return runtime
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        outputs['eddy_corrected'] = self.inputs.out_file
+        if not isdefined(outputs['eddy_corrected']):
+            outputs['eddy_corrected'] = self._gen_fname(self.inputs.in_file, suffix='_edc')
+        outputs['eddy_corrected'] = os.path.abspath(outputs['eddy_corrected'])
+        outputs['bvecs_rotated'] = self._gen_fname(self.inputs.in_file, suffix='', ext='.nii.gz.eddy_rotated_bvecs')
+        return outputs
+
+    def _gen_filename(self, name):
+        if name is 'out_file':
+            return self._list_outputs()['eddy_corrected']
+        else:
+            return None
+
 class BEDPOSTXInputSpec(FSLCommandInputSpec):
     dwi = File(exists=True, desc='diffusion weighted image data file', mandatory=True)
     mask = File(exists=True, desc='bet binary mask file', mandatory=True)

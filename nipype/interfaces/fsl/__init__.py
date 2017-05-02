@@ -16,9 +16,9 @@ from .utils import (Smooth, Merge, ExtractROI, Split, ImageMaths, ImageMeants,
                     ImageStats, FilterRegressor, Overlay, Slicer,
                     PlotTimeSeries, PlotMotionParams, ConvertXFM,
                     SwapDimensions, PowerSpectrum, Orient)
-from .dti import (Eddy, EddyCorrect, BEDPOSTX, DTIFit, ProbTrackX, VecReg, ProjThresh,
+from .dti import (Eddy, EddyOpenMP, EddyCorrect, BEDPOSTX, DTIFit, ProbTrackX, VecReg, ProjThresh,
                   FindTheBiggest, DistanceMap, TractSkeleton, XFibres,
                   MakeDyadicVectors)
-from .maths import (ChangeDataType, Threshold, MeanImage, ApplyMask,
+from .maths import (MathsCommand, ChangeDataType, Threshold, MeanImage, ApplyMask,
                     IsotropicSmooth, TemporalFilter, DilateImage, ErodeImage,
                     SpatialFilter, UnaryMaths, BinaryMaths, MultiImageMaths)

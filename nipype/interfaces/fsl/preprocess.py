@@ -383,7 +383,7 @@ class FLIRTInputSpec(FSLCommandInputSpec):
     angle_rep = traits.Enum('quaternion', 'euler',
                            argstr='-anglerep %s',
                            desc='representation of rotation angles')
-    interp = traits.Enum('trilinear', 'nearestneighbour', 'sinc',
+    interp = traits.Enum('trilinear', 'nearestneighbour', 'sinc','spline',
                          argstr='-interp %s',
                          desc='final interpolation method used in reslicing')
     sinc_width = traits.Int(argstr='-sincwidth %d', units='voxels',
