@@ -142,7 +142,7 @@ class ConstrainedSphericalDeconvolution(CommandLine):
     >>> csdeconv.run()                                          # doctest: +SKIP
     """
 
-    _cmd = 'csdeconv'
+    _cmd = 'dwi2fod'
     input_spec=ConstrainedSphericalDeconvolutionInputSpec
     output_spec=ConstrainedSphericalDeconvolutionOutputSpec
 
@@ -188,7 +188,7 @@ class EstimateResponseForSH(CommandLine):
     >>> estresp.inputs.encoding_file = 'encoding.txt'
     >>> estresp.run()                                   # doctest: +SKIP
     """
-    _cmd = 'estimate_response'
+    _cmd = 'dwi2response'
     input_spec=EstimateResponseForSHInputSpec
     output_spec=EstimateResponseForSHOutputSpec
 

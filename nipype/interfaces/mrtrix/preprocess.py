@@ -308,7 +308,10 @@ class DWI2Tensor(CommandLine):
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
-        outputs['tensor'] = op.abspath(self._gen_outfilename())
+        if not isdefined(self.inputs.out_filename):
+            outputs['tensor'] = op.abspath(self._gen_outfilename())
+        else:
+            outputs['tensor'] = op.abspath(self.inputs.out_filename)
         return outputs
 
     def _gen_filename(self, name):
@@ -323,7 +326,7 @@ class DWI2Tensor(CommandLine):
 class Tensor2VectorInputSpec(CommandLineInputSpec):
     in_file = File(exists=True, argstr='%s', mandatory=True, position=-2,
         desc='Diffusion tensor image')
-    out_filename = File(genfile=True, argstr='%s', position=-1, desc='Output vector filename')
+    out_filename = File(genfile=True, argstr='-vector %s', position=-1, desc='Output vector filename')
     quiet = traits.Bool(argstr='-quiet', position=1, desc="Do not display information messages or progress status.")
     debug = traits.Bool(argstr='-debug', position=1, desc="Display debugging messages.")
 
@@ -343,7 +346,7 @@ class Tensor2Vector(CommandLine):
     >>> tensor2vector.run()                             # doctest: +SKIP
     """
 
-    _cmd = 'tensor2vector'
+    _cmd = 'tensor2metric'
     input_spec=Tensor2VectorInputSpec
     output_spec=Tensor2VectorOutputSpec
 
@@ -386,13 +389,18 @@ class Tensor2FractionalAnisotropy(CommandLine):
     >>> tensor2FA.run()                                 # doctest: +SKIP
     """
 
-    _cmd = 'tensor2FA'
+    _cmd = 'tensor2metric'
     input_spec=Tensor2FractionalAnisotropyInputSpec
     output_spec=Tensor2FractionalAnisotropyOutputSpec
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
-        outputs['FA'] = op.abspath(self._gen_outfilename())
+        
+        if not isdefined(self.inputs.out_filename):
+            outputs['FA'] = op.abspath(self._gen_outfilename())
+        else:
+            outputs['FA'] = op.abspath(self.inputs.out_filename)
+
         return outputs
 
     def _gen_filename(self, name):
@@ -448,7 +456,7 @@ class Tensor2ApparentDiffusion(CommandLine):
 class MRMultiplyInputSpec(CommandLineInputSpec):
     in_files = InputMultiPath(exists=True, argstr='%s', mandatory=True, position=-2,
         desc='Input images to be multiplied')
-    out_filename = File(genfile=True, argstr='%s', position=-1, desc='Output image filename')
+    out_filename = File(genfile=True, argstr='-mult %s', position=-1, desc='Output image filename')
     quiet = traits.Bool(argstr='-quiet', position=1, desc="Do not display information messages or progress status.")
     debug = traits.Bool(argstr='-debug', position=1, desc="Display debugging messages.")
 
@@ -468,7 +476,7 @@ class MRMultiply(CommandLine):
     >>> MRmult.run()                                             # doctest: +SKIP
     """
 
-    _cmd = 'mrmult'
+    _cmd = 'mrcalc'
     input_spec=MRMultiplyInputSpec
     output_spec=MRMultiplyOutputSpec
 
@@ -586,10 +594,11 @@ class GenerateWhiteMatterMask(CommandLine):
         return name + '_WMProb.mif'
 
 class ErodeInputSpec(CommandLineInputSpec):
-    in_file = File(exists=True, argstr='%s', mandatory=True, position=-2,
+    in_file = File(exists=True, argstr='%s', mandatory=True, position=-3,
         desc='Input mask image to be eroded')
     out_filename = File(genfile=True, argstr='%s', position=-1, desc='Output image filename')
     number_of_passes = traits.Int(argstr='-npass %s', desc='the number of passes (default: 1)')
+    filtertype = traits.Enum('clean', 'connect', 'dilate', 'erode', 'median',argstr='%s', position=-2,desc='the type of filter to be applied (clean, connect, dilate, erode, median)')
     dilate = traits.Bool(argstr='-dilate', position=1, desc="Perform dilation rather than erosion")
     quiet = traits.Bool(argstr='-quiet', position=1, desc="Do not display information messages or progress status.")
     debug = traits.Bool(argstr='-debug', position=1, desc="Display debugging messages.")
@@ -609,7 +618,7 @@ class Erode(CommandLine):
     >>> erode.inputs.in_file = 'mask.mif'
     >>> erode.run()                                     # doctest: +SKIP
     """
-    _cmd = 'erode'
+    _cmd = 'maskfilter'
     input_spec=ErodeInputSpec
     output_spec=ErodeOutputSpec
 

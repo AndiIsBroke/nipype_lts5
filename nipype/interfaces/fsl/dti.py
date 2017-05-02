@@ -200,7 +200,7 @@ class Eddy(FSLCommand):
         if not isdefined(outputs['eddy_corrected']):
             outputs['eddy_corrected'] = self._gen_fname(self.inputs.in_file, suffix='_edc')
         outputs['eddy_corrected'] = os.path.abspath(outputs['eddy_corrected'])
-        outputs['bvecs_rotated'] = self._gen_fname(self.inputs.in_file, suffix='', ext='.nii.gz.eddy_rotated_bvecs')
+        outputs['bvecs_rotated'] = self._gen_fname(self.inputs.out_file, suffix='', ext='.nii.gz.eddy_rotated_bvecs')
         return outputs
 
     def _gen_filename(self, name):
@@ -244,7 +244,7 @@ class EddyOpenMP(FSLCommand):
         if not isdefined(outputs['eddy_corrected']):
             outputs['eddy_corrected'] = self._gen_fname(self.inputs.in_file, suffix='_edc')
         outputs['eddy_corrected'] = os.path.abspath(outputs['eddy_corrected'])
-        outputs['bvecs_rotated'] = self._gen_fname(self.inputs.in_file, suffix='', ext='.nii.gz.eddy_rotated_bvecs')
+        outputs['bvecs_rotated'] = self._gen_fname(self.inputs.out_file, suffix='', ext='.nii.gz.eddy_rotated_bvecs')
         return outputs
 
     def _gen_filename(self, name):
