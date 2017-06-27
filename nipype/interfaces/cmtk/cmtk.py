@@ -136,6 +136,9 @@ def create_endpoints_array(fib, voxelSize):
     endpointsmm = np.zeros((n, 2, 3))
     pc = -1
 
+    if print_info:
+        print("Number of fibers : %s" % n)
+
     # Computation for each fiber
     for i, fi in enumerate(fib):
         f = fi[0]

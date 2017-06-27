@@ -86,6 +86,7 @@ class DWI2SphericalHarmonicsImage(CommandLine):
         return name + '_SH.mif'
 
 class ConstrainedSphericalDeconvolutionInputSpec(CommandLineInputSpec):
+    algorithm = traits.Enum('csd', argstr='%s', mandatory=True, position=-4, desc='use CSD algorithm for FOD estimation')
     in_file = File(exists=True, argstr='%s', mandatory=True, position=-3, desc='diffusion-weighted image')
     response_file = File(exists=True, argstr='%s', mandatory=True, position=-2,
     desc='the diffusion-weighted signal response function for a single fibre population (see EstimateResponse)')
@@ -97,7 +98,7 @@ class ConstrainedSphericalDeconvolutionInputSpec(CommandLineInputSpec):
     desc='a text file containing the filtering coefficients for each even harmonic order.' \
     'the linear frequency filtering parameters used for the initial linear spherical deconvolution step (default = [ 1 1 1 0 0 ]).')
 
-    lambda_value = traits.Float(argstr='-lambda %s', desc='the regularisation parameter lambda that controls the strength of the constraint (default = 1.0).')
+    lambda_value = traits.Float(argstr='-norm_lambda %s', desc='the regularisation parameter lambda that controls the strength of the constraint (default = 1.0).')
     maximum_harmonic_order = traits.Float(argstr='-lmax %s', desc='set the maximum harmonic order for the output series. By default, the program will use the highest possible lmax given the number of diffusion-weighted images.')
     threshold_value = traits.Float(argstr='-threshold %s', desc='the threshold below which the amplitude of the FOD is assumed to be zero, expressed as a fraction of the mean value of the initial FOD (default = 0.1)')
     iterations = traits.Int(argstr='-niter %s', desc='the maximum number of iterations to perform for each voxel (default = 50)')
@@ -105,7 +106,7 @@ class ConstrainedSphericalDeconvolutionInputSpec(CommandLineInputSpec):
     directions_file = File(exists=True, argstr='-directions %s', position=-2,
     desc='a text file containing the [ el az ] pairs for the directions: Specify the directions over which to apply the non-negativity constraint (by default, the built-in 300 direction set is used)')
 
-    normalise = traits.Bool(argstr='-normalise', position=3, desc="normalise the DW signal to the b=0 image")
+    # normalise = traits.Bool(argstr='-normalise', position=3, desc="normalise the DW signal to the b=0 image")
 
 class ConstrainedSphericalDeconvolutionOutputSpec(TraitedSpec):
     spherical_harmonics_image = File(exists=True, desc='Spherical harmonics image')
@@ -161,13 +162,14 @@ class ConstrainedSphericalDeconvolution(CommandLine):
         return name + '_CSD.mif'
 
 class EstimateResponseForSHInputSpec(CommandLineInputSpec):
-    in_file = File(exists=True, argstr='%s', mandatory=True, position=-3, desc='Diffusion-weighted images')
-    mask_image = File(exists=True, mandatory=True, argstr='%s', position=-2, desc='only perform computation within the specified binary brain mask image')
-    out_filename = File(genfile=True, argstr='%s', position=-1, desc='Output filename')
-    encoding_file = File(exists=True, argstr='-grad %s', mandatory=True, position=1,
-    desc='Gradient encoding, supplied as a 4xN text file with each line is in the format [ X Y Z b ], where [ X Y Z ] describe the direction of the applied gradient, and b gives the b-value in units (1000 s/mm^2). See FSL2MRTrix')
-    maximum_harmonic_order = traits.Float(argstr='-lmax %s', desc='set the maximum harmonic order for the output series. By default, the program will use the highest possible lmax given the number of diffusion-weighted images.')
-    normalise = traits.Bool(argstr='-normalise', desc='normalise the DW signal to the b=0 image')
+    in_file = File(exists=True, argstr='%s', mandatory=True, position=2, desc='Diffusion-weighted images')
+    algorithm = traits.Enum('dhollander', 'fa', 'manual', 'msmt_5tt', 'tax', 'tournier', argstr='%s', position=1, desc='Select the algorithm to be used to derive the response function; additional details and options become available once an algorithm is nominated. Options are: dhollander, fa, manual, msmt_5tt, tax, tournier')
+    mask_image = File(exists=True, mandatory=True, argstr='-mask %s', position=-1, desc='only perform computation within the specified binary brain mask image')
+    out_filename = File(genfile=True, argstr='%s', position=3, desc='Output filename')
+    encoding_file = File(exists=True, argstr='-grad %s', mandatory=True, position=-2, desc='Gradient encoding, supplied as a 4xN text file with each line is in the format [ X Y Z b ], where [ X Y Z ] describe the direction of the applied gradient, and b gives the b-value in units (1000 s/mm^2). See FSL2MRTrix')
+    maximum_harmonic_order = traits.Float(argstr='-lmax %s', position=-3, desc='set the maximum harmonic order for the output series. By default, the program will use the highest possible lmax given the number of diffusion-weighted images.')
+    # normalise = traits.Bool(argstr='-normalise', desc='normalise the DW signal to the b=0 image')
+    
     quiet = traits.Bool(argstr='-quiet', desc='Do not display information messages or progress status.')
     debug = traits.Bool(argstr='-debug', desc='Display debugging messages.')
 

@@ -202,7 +202,7 @@ class MRTrix2TrackVis(BaseInterface):
 
             final_streamlines = move_streamlines(transformed_streamlines, aff)
             trk_tracks = ((ii,None,None) for ii in final_streamlines)
-            trk.write(out_filename, trk_tracks, trk_header)
+            trk.write(out_filename, trk_tracks, trk_header,points_space='rasmm')
             iflogger.info('Saving transformed Trackvis file as {out}'.format(out=out_filename))
             iflogger.info('New TrackVis Header:')
             iflogger.info(trk_header)
@@ -213,7 +213,7 @@ class MRTrix2TrackVis(BaseInterface):
             trk_header['vox_to_ras'] = affine
             transformed_streamlines = transform_to_affine(streamlines, trk_header, affine)
             trk_tracks = ((ii,None,None) for ii in transformed_streamlines)
-            trk.write(out_filename, trk_tracks, trk_header)
+            trk.write(out_filename, trk_tracks, trk_header,points_space='rasmm')
             iflogger.info('Saving Trackvis file as {out}'.format(out=out_filename))
             iflogger.info('TrackVis Header:')
             iflogger.info(trk_header)
